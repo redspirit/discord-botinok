@@ -17,6 +17,7 @@ class BotinokModule {
     moduleDir = '';
     client = '';
     ownerOnly = '';
+    cachedCommands = [];
 
     constructor(config) {
 
@@ -35,23 +36,25 @@ class BotinokModule {
         }
 
         if(config.clientEvents) {
-
             config.clientEvents.forEach(item => {
                 config.client.on(item[0], item[1])
             });
-
         }
 
         if(!_.isEmpty(config.commands)) {
-
             this.commands = config.commands.map(item => {
                 return {
                     aliases: item.command.split('|'),
-                    help: item.help,
-                    controller: item.controller
+                    controller: item.controller,
+                    help: item.help
                 };
             });
+        }
 
+        if(!this.isMiddleware) {
+            this.commands.forEach(item => {
+                this.cachedCommands = this.cachedCommands.concat(item.aliases);
+            });
         }
 
     }
@@ -134,31 +137,14 @@ class BotinokModule {
         };
     }
 
-    async executeController(cmdWIthArgs) {
-
-        // cmdWIthArgs.args;
-        // cmdWIthArgs.message;
+    executeController(args, message, next) {
 
         if(this.isMiddleware) {
-
-            // todo выглядит это не очень красиво, подумать как обойтись цепочкой без промисов
-
-            return new Promise((resolve, reject) => {
-                let timer = setTimeout(resolve, 3000); // если за 3 сек next не вызовится, то вызываем автоматом
-                this.mwController(cmdWIthArgs.args, cmdWIthArgs.message, (nextMessage) => {
-                    clearTimeout(timer);
-                    resolve(nextMessage);
-                }).then(result => {
-                    clearTimeout(timer);
-                    resolve(null);
-                });
-            });
-
+            return this.mwController(args, message, next);
         }
 
-        if(!cmdWIthArgs.args) {
-            return cmdWIthArgs.message;
-        }
+        if(_.isEmpty(args)) return false;
+
 
         // todo тут можно проверить права на команду
         // if(this.ownerOnly && !cmdWIthArgs.message.isOwner) {
@@ -170,25 +156,29 @@ class BotinokModule {
 
             return item.aliases.filter(alias => {
                 let a = alias.split(' ');
-                let b = cmdWIthArgs.args.slice(0, a.length);
+                let b = args.slice(0, a.length);
                 return a.join(' ') === b.join(' ');
             }).length > 0;
 
         })[0];
 
-        if(!matched) return cmdWIthArgs.message;
+        if(!matched) return false;
+        let params = this.parseParams({message, args}, matched.aliases[0]);
 
-        let params = this.parseParams(cmdWIthArgs, matched.aliases[0]);
-
-        matched.controller(params, cmdWIthArgs.message, Discord).then();
-
-        return cmdWIthArgs.message;
+        matched.controller(params, message, Discord, next);
 
     }
 
-    checkByArgs(args) {
+    checkByArgs(argsStr) {
         // todo проверяем соответствует ли модуль команде, если аргументы пустые то соответствует только мидлварке
-        return true;
+
+        if(this.isMiddleware) return true;
+        if(!argsStr && !this.isMiddleware) return false;
+
+        return this.cachedCommands.filter(item => {
+            return argsStr.indexOf(item) === 0;
+        }).length >= 1;
+
     }
 
 }
@@ -253,20 +243,17 @@ class BotinokFramework {
 
     findAndExecute (args, message) {
 
-        let relevantList = this.modulesList.filter(module => module.checkByArgs(args));
-        if(relevantList.length === 0) return false;
+        console.log(1, args);
 
-        // todo закончи это!
-        let n = 0;
-        let func  = (i, cb) => {
-            relevantList[i].executeController(args, message, cb);
-        };
+        let argsStr = args ? args.join(' ') : null;
+        let relevantList = this.modulesList.filter(module => module.checkByArgs(argsStr));
 
-        func(n, () => {
-            n++;
-            func(n)
-        })
 
+
+        async.eachSeries(relevantList, (module, cb) => {
+            console.log(module.name, args);
+            module.executeController(args, message, () => { cb() });
+        });
 
     }
 

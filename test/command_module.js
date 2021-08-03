@@ -21,7 +21,12 @@ module.exports = {
     ownerOnly: false,
     commands: [
         {
-            command: 'coin|монетка',
+            command: 'test|монетка',
+            controller: FlipCoin,
+            help: 'How to use the command'
+        },
+        {
+            command: 'кинуть шарик|drop ball',
             controller: FlipCoin,
             help: 'How to use the command'
         }
