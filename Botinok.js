@@ -18,7 +18,6 @@ class BotinokModule {
     moduleDir = '';
     client = '';
     ownerOnly = '';
-    moduleFile = '';
 
     constructor(config) {
 
@@ -32,18 +31,16 @@ class BotinokModule {
         this.ownerOnly = !!config.ownerOnly;
         this.isMiddleware = !!config.isMiddleware;
         this.middlewarePriority = config.middlewarePriority || 0;
-        this.middlewareController = config.middlewareController || null;
-        this.moduleFile = config.moduleDir + config.name + '.js';
+        this.controller = config.controller || null;
 
         if(config.startController) {
-            let func = require(this.moduleFile)[config.startController];
-            func(config.client);
+            config.startController(config.client);
         }
 
         if(config.clientEvents) {
 
             config.clientEvents.forEach(item => {
-                config.client.on(item[0], require(this.moduleFile)[item[1]])
+                config.client.on(item[0], item[1])
             });
 
         }
@@ -54,7 +51,7 @@ class BotinokModule {
                 return {
                     aliases: item.command.split('|'),
                     help: item.help,
-                    controller: require(this.moduleFile)[item.controller]
+                    controller: item.controller
                 };
             });
 
@@ -149,7 +146,7 @@ class BotinokModule {
 
             return new Promise((resolve, reject) => {
                 let timer = setTimeout(resolve, 3000); // если за 3 сек next не вызовится, то вызываем автоматом
-                require(this.moduleFile)[this.middlewareController](cmdWIthArgs.args, cmdWIthArgs.message, (nextMessage) => {
+                this.controller(cmdWIthArgs.args, cmdWIthArgs.message, (nextMessage) => {
                     clearTimeout(timer);
                     resolve(nextMessage);
                 }).then(result => {
@@ -274,7 +271,7 @@ class BotinokFramework {
 
     }
 
-    static addModule(conf) {
+    addModule(conf) {
 
         conf.client = this.client;
         let module = new BotinokModule(conf);

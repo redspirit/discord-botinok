@@ -3,8 +3,11 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const Botinok = require('./Botinok');
 
+let botinok = null;
 
 const start = (config) => {
+
+    if(botinok) throw new Error('already started');
 
     let token = config.token;
     let prefix = config.prefix;
@@ -13,27 +16,25 @@ const start = (config) => {
     if(!token) throw new Error('token required');
     if(!prefix) throw new Error('prefix required');
 
-    let botinok = new Botinok({ownerId, prefix});
-
+    botinok = new Botinok({ownerId, prefix});
     botinok.setClient(client);
-
     client.login(token);
 
     return client;
 
 };
 
-const registerModule = (config) => {
+const addModule = (config) => {
     // todo check config
     config.isMiddleware = false;
-    Botinok.addModule(config);
+    botinok.addModule(config);
 };
 
-const registerMiddleware = (config) => {
+const addMiddleware = (config) => {
     // todo check config
     config.isMiddleware = true;
-    Botinok.addModule(config);
+    botinok.addModule(config);
 };
 
 
-module.exports = { start, registerModule, registerMiddleware };
+module.exports = { start, addModule, addMiddleware };

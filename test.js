@@ -1,10 +1,10 @@
 
-const bot = require('./index');
+const bot = require('./'); // require discord-botinok
 const testModule = require('./test_module');
 
 let client = bot.start({
-    token: 'ODUyNDQ4OTU3NTkzNjgxOTMw.YMG-9Q.-CVi1DL8t5Zv7mV_Ab3pjg7cDps',
+    token: process.env.BOT_TOKEN, // pass your bot token through an environment variable
     prefix: '!'
 });
 
-bot.registerModule(testModule);
+bot.addModule(testModule); // add a simple module for the bot

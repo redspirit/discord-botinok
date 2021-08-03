@@ -1,16 +1,17 @@
 
 const DropCoin = async (params, message) => {
 
+    console.log('DropCoin', params);
+
     let result = Math.random() < 0.5;
     let comment = params.raw.join(' ');
 
     if(!comment)
-        return message.reply('Спросите вопрос у монетки на котороый можно ответить ДА или НЕТ \n' +
-            'Пример: `!монетка я успею на автобус?`. За использование тратится **1** :coin:');
+        return message.reply('Ask a question from a coin, which can be answered YES or NO. Example: `!coin will I catch the bus?`');
 
     if(comment[comment.length-1] !== '?') comment += '?';
 
-    message.channel.send(`**${comment.capitalize()}** Монетка сказала: ` + (result ? ':x: **НЕТ**' : ':white_check_mark: **ДА**'));
+    message.channel.send(`**${comment.capitalize()}** The coin said: ` + (result ? ':x: **NO**' : ':white_check_mark: **YES**'));
 
 };
 
@@ -24,7 +25,7 @@ module.exports = {
     ownerOnly: false,
     commands: [
         {
-            command: 'монетка|монета|coin',
+            command: 'coin|монетка',
             controller: DropCoin,
             help: 'How to use the command'
         }
