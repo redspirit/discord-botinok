@@ -1,0 +1,26 @@
+{
+  "name": "discord-botinok",
+  "version": "0.0.1",
+  "description": "Фреймворк для постройки бота для дискорда на основе discord.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/redspirit/discord-botinok.git"
+  },
+  "author": "RedSpirit",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/redspirit/discord-botinok/issues"
+  },
+  "homepage": "https://github.com/redspirit/discord-botinok#readme",
+  "dependencies": {
+    "async": "^3.2.0",
+    "discord-buttons": "^4.0.0",
+    "discord.js": "^12.5.3",
+    "moment": "^2.29.1",
+    "underscore": "^1.13.1"
+  }
+}
