@@ -3,18 +3,18 @@ const utils = require('./utils');
 const async = require('async');
 const _ = require('underscore');
 const moment = require('moment');
+const Discord = require('discord.js');
 
 class BotinokModule {
 
     name = null;
     description = null;
     category = null;
-    version = null;
     activateOnUpdate = null;
     commands = [];
     isMiddleware = false;
-    middlewareController = null;
-    middlewarePriority = 0;
+    mwController = null;
+    priority = 0;
     moduleDir = '';
     client = '';
     ownerOnly = '';
@@ -24,14 +24,13 @@ class BotinokModule {
         this.name = config.name;
         this.category = config.category;
         this.description = config.description;
-        this.version = config.version;
         this.activateOnUpdate = config.activateOnUpdate;
         this.moduleDir = config.moduleDir;
         this.client = config.client;
         this.ownerOnly = !!config.ownerOnly;
         this.isMiddleware = !!config.isMiddleware;
-        this.middlewarePriority = config.middlewarePriority || 0;
-        this.controller = config.controller || null;
+        this.priority = config.priority || 0;               // todo приоритет пока ни на что не влияет
+        this.mwController = config.controller || null;
 
         if(config.startController) {
             config.startController(config.client);
@@ -144,9 +143,11 @@ class BotinokModule {
 
         if(this.isMiddleware) {
 
+            // todo выглядит это не очень красиво, подумать как обойтись цепочкой без промисов
+
             return new Promise((resolve, reject) => {
                 let timer = setTimeout(resolve, 3000); // если за 3 сек next не вызовится, то вызываем автоматом
-                this.controller(cmdWIthArgs.args, cmdWIthArgs.message, (nextMessage) => {
+                this.mwController(cmdWIthArgs.args, cmdWIthArgs.message, (nextMessage) => {
                     clearTimeout(timer);
                     resolve(nextMessage);
                 }).then(result => {
@@ -181,7 +182,7 @@ class BotinokModule {
 
         let params = this.parseParams(cmdWIthArgs, matched.aliases[0]);
 
-        matched.controller(params, cmdWIthArgs.message).then();
+        matched.controller(params, cmdWIthArgs.message, Discord).then();
 
         return cmdWIthArgs.message;
 
@@ -287,7 +288,7 @@ class BotinokFramework {
 
     getmodules () {
         return this.modulesList.filter(module => !module.isMiddleware).map(module => {
-            return _.pick(module, ['name', 'description', 'category', 'version', 'ownerOnly']);
+            return _.pick(module, ['name', 'description', 'category', 'ownerOnly']);
         });
     }
 

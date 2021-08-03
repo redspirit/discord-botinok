@@ -1,7 +1,5 @@
 
-const DropCoin = async (params, message) => {
-
-    console.log('DropCoin', params);
+const FlipCoin = async (params, message) => {
 
     let result = Math.random() < 0.5;
     let comment = params.raw.join(' ');
@@ -19,14 +17,12 @@ module.exports = {
     name: 'coin',
     category: 'games',
     description: 'Flip a coin',
-    version: '1.0.0',
-    disabled: false,
     activateOnUpdate: true,
     ownerOnly: false,
     commands: [
         {
             command: 'coin|монетка',
-            controller: DropCoin,
+            controller: FlipCoin,
             help: 'How to use the command'
         }
     ]
