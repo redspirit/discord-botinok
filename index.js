@@ -12,11 +12,12 @@ const start = (config) => {
     let token = config.token;
     let prefix = config.prefix;
     let ownerId = config.ownerId;
+    let status = config.status;
 
     if(!token) throw new Error('token required');
     if(!prefix) throw new Error('prefix required');
 
-    botinok = new Botinok({ownerId, prefix});
+    botinok = new Botinok({ownerId, prefix, status});
     botinok.setClient(client);
     client.login(token);
 

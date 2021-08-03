@@ -12,6 +12,5 @@ const Ctrl = async (args, message, next) => {
 
 module.exports = {
     name: 'auth',
-    priority: 10,
     controller: Ctrl,
 };

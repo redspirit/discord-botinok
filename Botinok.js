@@ -14,7 +14,6 @@ class BotinokModule {
     commands = [];
     isMiddleware = false;
     mwController = null;
-    priority = 0;
     moduleDir = '';
     client = '';
     ownerOnly = '';
@@ -29,7 +28,6 @@ class BotinokModule {
         this.client = config.client;
         this.ownerOnly = !!config.ownerOnly;
         this.isMiddleware = !!config.isMiddleware;
-        this.priority = config.priority || 0;               // todo приоритет пока ни на что не влияет
         this.mwController = config.controller || null;
 
         if(config.startController) {
@@ -188,6 +186,11 @@ class BotinokModule {
 
     }
 
+    checkByArgs(args) {
+        // todo проверяем соответствует ли модуль команде, если аргументы пустые то соответствует только мидлварке
+        return true;
+    }
+
 }
 
 class BotinokFramework {
@@ -195,46 +198,40 @@ class BotinokFramework {
     client = null;
     ownerId = null;
     prefix = null;
+    status = null;
     modulesList = [];
 
     constructor(config) {
         this.ownerId = config.ownerId;
         this.prefix = config.prefix;
+        this.status = config.status;
     }
 
     setClient(client) {
         this.client = client;
 
         client.on('ready', () => {
-            console.info(`Logged in as ${client.user.tag}!`);
+            console.info(`Bot logged in as ${client.user.tag}!`);
 
-            client.user.setPresence({
-                status: "online",
-                activity: {
-                    name: "!помощь",
-                    type: "WATCHING"
-                }
-            });
+            if(this.status) {
+
+                client.user.setPresence({
+                    status: "online",
+                    activity: {
+                        name: this.prefix + this.status,
+                        type: "WATCHING"
+                    }
+
+                });
+            }
 
         });
 
         client.on('message', async message => {
             if (message.author.bot) return false;
-
-            let parsed = this.parseBotCommand(message.content);
+            let args = this.parseBotCommand(message.content);
             message.isOwner = message.author.id === this.ownerId;
-
-            if(!parsed) {
-                // обычное сообщение без комманды
-                return this.findAndExecute({
-                    args: null,
-                    message: message
-                });
-            }
-
-            parsed.message = message;
-            this.findAndExecute(parsed);
-
+            this.findAndExecute(args, message);
         });
 
         client.on('messageUpdate', async (oldMessage, newMessage) => {
@@ -251,24 +248,25 @@ class BotinokFramework {
     parseBotCommand(content) {
         if(!content.startsWith(this.prefix)) return null;
         const commandBody = content.clear().replace(/[.,]/g,"").slice(this.prefix.length).toLowerCase();
-        return {
-            args: commandBody.split(' ')
-        }
+        return commandBody.split(' ');
     }
 
-    findAndExecute (commandWIthArgs) {
+    findAndExecute (args, message) {
 
-        let stopExecuting = false;
+        let relevantList = this.modulesList.filter(module => module.checkByArgs(args));
+        if(relevantList.length === 0) return false;
 
-        async.eachSeries(this.modulesList, async (module) => {
-            if(stopExecuting) return false;
-            let message = await module.executeController(commandWIthArgs);
-            if(message) {
-                commandWIthArgs.message = message;
-            } else {
-                stopExecuting = true;
-            }
-        });
+        // todo закончи это!
+        let n = 0;
+        let func  = (i, cb) => {
+            relevantList[i].executeController(args, message, cb);
+        };
+
+        func(n, () => {
+            n++;
+            func(n)
+        })
+
 
     }
 
