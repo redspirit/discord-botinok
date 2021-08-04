@@ -1,5 +1,5 @@
 
-const FlipCoin = async (params, message) => {
+const FlipCoin = async ({params, message}) => {
 
     let result = Math.random() < 0.5;
     let comment = params.raw.join(' ');
@@ -23,12 +23,11 @@ module.exports = {
         {
             command: 'test|монетка',
             controller: FlipCoin,
-            help: 'How to use the command'
         },
         {
-            command: 'кинуть шарик|drop ball',
+            command: 'drop ball|кинуть шарик',
             controller: FlipCoin,
-            help: 'How to use the command'
+            role: 'moder|admin',
         }
     ]
 };

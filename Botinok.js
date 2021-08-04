@@ -4,6 +4,7 @@ const async = require('async');
 const _ = require('underscore');
 const moment = require('moment');
 const Discord = require('discord.js');
+const disButtons = require("discord-buttons");
 
 class BotinokModule {
 
@@ -17,7 +18,6 @@ class BotinokModule {
     moduleDir = '';
     client = '';
     ownerOnly = '';
-    cachedCommands = [];
 
     constructor(config) {
 
@@ -27,7 +27,7 @@ class BotinokModule {
         this.activateOnUpdate = config.activateOnUpdate;
         this.moduleDir = config.moduleDir;
         this.client = config.client;
-        this.ownerOnly = !!config.ownerOnly;
+        this.ownerOnly = config.ownerOnly;
         this.isMiddleware = !!config.isMiddleware;
         this.mwController = config.controller || null;
 
@@ -36,8 +36,8 @@ class BotinokModule {
         }
 
         if(config.clientEvents) {
-            config.clientEvents.forEach(item => {
-                config.client.on(item[0], item[1])
+            _.each(config.clientEvents, (func, key) => {
+                config.client.on(key, func)
             });
         }
 
@@ -46,14 +46,8 @@ class BotinokModule {
                 return {
                     aliases: item.command.split('|'),
                     controller: item.controller,
-                    help: item.help
+                    role: item.role
                 };
-            });
-        }
-
-        if(!this.isMiddleware) {
-            this.commands.forEach(item => {
-                this.cachedCommands = this.cachedCommands.concat(item.aliases);
             });
         }
 
@@ -140,21 +134,20 @@ class BotinokModule {
     executeController(args, message, next) {
 
         if(this.isMiddleware) {
-            return this.mwController(args, message, next);
+            return this.mwController({args, message, Discord, next});
         }
 
-        if(_.isEmpty(args)) return false;
+        if(this.ownerOnly && !message.isOwner) return next();
+        if(_.isEmpty(args) && !this.isMiddleware) return next();
 
+        let matched = this.commands.filter(command => {
 
-        // todo тут можно проверить права на команду
-        // if(this.ownerOnly && !cmdWIthArgs.message.isOwner) {
-        //     cmdWIthArgs.message.reply('нет разрешения для использования этой команды');
-        //     return false;
-        // }
+            if(command.role) {
+                let hasRole = message.member.roles.cache.some(r => command.role.split('|').includes(r.name));
+                if(!hasRole) return false;
+            }
 
-        let matched = this.commands.filter(item => {
-
-            return item.aliases.filter(alias => {
+            return command.aliases.filter(alias => {
                 let a = alias.split(' ');
                 let b = args.slice(0, a.length);
                 return a.join(' ') === b.join(' ');
@@ -162,22 +155,10 @@ class BotinokModule {
 
         })[0];
 
-        if(!matched) return false;
+        if(!matched) return next();
         let params = this.parseParams({message, args}, matched.aliases[0]);
 
-        matched.controller(params, message, Discord, next);
-
-    }
-
-    checkByArgs(argsStr) {
-        // todo проверяем соответствует ли модуль команде, если аргументы пустые то соответствует только мидлварке
-
-        if(this.isMiddleware) return true;
-        if(!argsStr && !this.isMiddleware) return false;
-
-        return this.cachedCommands.filter(item => {
-            return argsStr.indexOf(item) === 0;
-        }).length >= 1;
+        matched.controller({params, message, Discord, next});
 
     }
 
@@ -200,18 +181,17 @@ class BotinokFramework {
     setClient(client) {
         this.client = client;
 
+        disButtons(client);
+
         client.on('ready', () => {
-            console.info(`Bot logged in as ${client.user.tag}!`);
 
             if(this.status) {
-
                 client.user.setPresence({
                     status: "online",
                     activity: {
                         name: this.prefix + this.status,
                         type: "WATCHING"
                     }
-
                 });
             }
 
@@ -225,13 +205,14 @@ class BotinokFramework {
         });
 
         client.on('messageUpdate', async (oldMessage, newMessage) => {
+            // todo обрабатывать эту настройку для модуля
             newMessage.isUpdate = true;
             client.emit('message', newMessage);
         });
 
-        client.on('clickButton', async (button) => {
-
-        });
+        // client.on('clickButton', async (button) => {
+        //
+        // });
 
     }
 
@@ -243,15 +224,8 @@ class BotinokFramework {
 
     findAndExecute (args, message) {
 
-        console.log(1, args);
-
-        let argsStr = args ? args.join(' ') : null;
-        let relevantList = this.modulesList.filter(module => module.checkByArgs(argsStr));
-
-
-
-        async.eachSeries(relevantList, (module, cb) => {
-            console.log(module.name, args);
+        // execute commands step by step
+        async.eachSeries(this.modulesList, (module, cb) => {
             module.executeController(args, message, () => { cb() });
         });
 

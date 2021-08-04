@@ -1,6 +1,6 @@
 {
   "name": "discord-botinok",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Фреймворк для постройки бота для дискорда на основе discord.js",
   "main": "index.js",
   "scripts": {

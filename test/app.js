@@ -9,5 +9,5 @@ let client = bot.start({
     status: 'coin'
 });
 
-// bot.addMiddleware(middlewareModule);    // add a middleware module for the bot
+bot.addMiddleware(middlewareModule);    // add a middleware module for the bot
 bot.addModule(commandModule);           // add a simple command module for the bot

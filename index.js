@@ -26,13 +26,14 @@ const start = (config) => {
 };
 
 const addModule = (config) => {
-    // todo check config
+    if(!config.name) throw new Error('module name required');
+    if(!config.commands) throw new Error('module commands required');
     config.isMiddleware = false;
     botinok.addModule(config);
 };
 
 const addMiddleware = (config) => {
-    // todo check config
+    if(!config.name) throw new Error('module name required');
     config.isMiddleware = true;
     botinok.addModule(config);
 };
