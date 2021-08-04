@@ -18,9 +18,11 @@ class BotinokModule {
     moduleDir = '';
     client = '';
     ownerOnly = '';
+    botinok = '';
 
-    constructor(config) {
+    constructor(config, parent) {
 
+        this.botinok = parent;
         this.name = config.name;
         this.category = config.category;
         this.description = config.description;
@@ -134,7 +136,7 @@ class BotinokModule {
     executeController(args, message, next) {
 
         if(this.isMiddleware) {
-            return this.mwController({args, message, Discord, next, Botinok: null}); // todo передать в Botinok экземпляр BotinokFramework
+            return this.mwController({args, message, Discord, next, Botinok: this.botinok});
         }
 
         if(this.ownerOnly && !message.isOwner) return next();
@@ -158,7 +160,7 @@ class BotinokModule {
         if(!matched) return next();
         let params = this.parseParams({message, args}, matched.aliases[0]);
 
-        matched.controller({params, message, Discord, next, Botinok: null});
+        matched.controller({params, message, Discord, next, Botinok: this.botinok});
 
     }
 
@@ -234,7 +236,7 @@ class BotinokFramework {
     addModule(conf) {
 
         conf.client = this.client;
-        let module = new BotinokModule(conf);
+        let module = new BotinokModule(conf, this);
         this.modulesList.push(module);
 
     }
