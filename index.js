@@ -26,6 +26,7 @@ const start = (config) => {
 };
 
 const addModule = (config) => {
+    if(!botinok) throw new Error('start the bot first');
     if(!config.name) throw new Error('module name required');
     if(!config.commands) throw new Error('module commands required');
     config.isMiddleware = false;
@@ -33,6 +34,7 @@ const addModule = (config) => {
 };
 
 const addMiddleware = (config) => {
+    if(!botinok) throw new Error('start the bot first');
     if(!config.name) throw new Error('module name required');
     config.isMiddleware = true;
     botinok.addModule(config);
