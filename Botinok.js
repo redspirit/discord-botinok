@@ -32,7 +32,7 @@ class BotinokModule {
         this.mwController = config.controller || null;
 
         if(config.startController) {
-            config.startController(config.client);
+            config.startController(config.client, Discord);
         }
 
         if(config.clientEvents) {
