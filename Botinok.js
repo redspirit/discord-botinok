@@ -134,7 +134,7 @@ class BotinokModule {
     executeController(args, message, next) {
 
         if(this.isMiddleware) {
-            return this.mwController({args, message, Discord, next});
+            return this.mwController({args, message, Discord, next, Botinok: null}); // todo передать в Botinok экземпляр BotinokFramework
         }
 
         if(this.ownerOnly && !message.isOwner) return next();
@@ -158,7 +158,7 @@ class BotinokModule {
         if(!matched) return next();
         let params = this.parseParams({message, args}, matched.aliases[0]);
 
-        matched.controller({params, message, Discord, next});
+        matched.controller({params, message, Discord, next, Botinok: null});
 
     }
 

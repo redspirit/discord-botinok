@@ -14,7 +14,7 @@ npm i discord-botinok
 
 ## Настройка
 ```js
-const bot = require('../'); // require discord-botinok
+const bot = require('discord-botinok');
 const commandModule = require('./command_module');
 const middlewareModule = require('./mw_module');
 
