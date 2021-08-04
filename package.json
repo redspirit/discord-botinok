@@ -1,6 +1,6 @@
 {
   "name": "discord-botinok",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Фреймворк для постройки бота для дискорда на основе discord.js",
   "main": "index.js",
   "scripts": {
@@ -15,6 +15,16 @@
   "bugs": {
     "url": "https://github.com/redspirit/discord-botinok/issues"
   },
+  "keywords": [
+    "discord.js",
+    "discordbot",
+    "bot",
+    "commands",
+    "discord",
+    "bots",
+    "messenger",
+    "messages"
+  ],
   "homepage": "https://github.com/redspirit/discord-botinok#readme",
   "dependencies": {
     "async": "^3.2.0",
