@@ -33,7 +33,10 @@ class BotinokModule {
         this.isMiddleware = !!config.isMiddleware;
         this.mwController = config.controller || null;
 
+        if(this.mwController && !_.isFunction(this.mwController)) throw new Error(`Check module "${config.name}" controller must be the function`);
+
         if(config.startController) {
+            if(!_.isFunction(config.startController)) throw new Error(`Check module "${config.name}" startController must be the function`);
             config.startController(config.client, Discord);
         }
 
