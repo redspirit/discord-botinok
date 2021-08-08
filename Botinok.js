@@ -223,7 +223,8 @@ class BotinokFramework {
 
     parseBotCommand(content) {
         if(!content.startsWith(this.prefix)) return null;
-        const commandBody = content.clear().replace(/[.,]/g,"").slice(this.prefix.length).toLowerCase();
+        const commandBody = content.clear().slice(this.prefix.length).toLowerCase();
+        // .replace(/[,.]/g,"")
         return commandBody.split(' ');
     }
 
